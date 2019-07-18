@@ -1,0 +1,271 @@
+---
+title: "Logistic Regression - Term Deposit Prediction"
+author: "Vinayak"
+date: "7/16/2019"
+output:
+  html_document:
+    code_folding: show
+    number_sections: yes
+    theme: spacelab
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+# Problem Statement
+**OBJECTIVE**: Given the data from a bank(Bank_ds.txt) determine whether a subject subscribes to a term deposit or not.
+
+The dataset has following attributes:
+- age (numeric)
+
+- job : type of job (categorical: “admin.”,“unknown”,“unemployed”,“management”,“housemaid”,“entrepreneur”,“student”, “blue-collar”,“self-employed”,“retired”,“technician”,“services”)
+
+- marital : marital status (categorical: “married”,“divorced”,“single”; note: “divorced” means divorced or widowed)
+
+- education (categorical: “unknown”,“secondary”,“primary”,“tertiary”)
+
+- default: has credit in default? (binary: “yes”,“no”)
+
+- balance: average yearly balance, in euros (numeric)
+
+- housing: has housing loan? (binary: “yes”,“no”)
+
+- loan: has personal loan? (binary: “yes”,“no”)
+
+- contact: contact communication type (categorical: “unknown”,“telephone”,“cellular”)
+
+- day: last contact day of the month (numeric)
+
+- month: last contact month of year (categorical: “jan”, “feb”, “mar”, …, “nov”, “dec”)
+
+- duration: last contact duration, in seconds (numeric)
+
+- campaign: number of contacts performed during this campaign and for this client (numeric, includes last contact)
+
+- pdays: number of days that passed by after the client was last contacted from a previous campaign (numeric, -1 means client was not previously contacted)
+
+- previous: number of contacts performed before this campaign and for this client (numeric)
+
+- poutcome: outcome of the previous marketing campaign (categorical: “unknown”,“other”,“failure”,“success”)
+
+Response Variable (desired target):
+
+- y - has the client subscribed to a term deposit? (binary: “yes”,“no”)
+
+# Read/Observe the Data
+Clear the workspace before starting a new analysis. Set the working directory to the folder in which your dataset resides. Read the data to a tibble. See the structure of the dataframe and go through a summary of descriptive stats pertaining to different features.
+```{r message = FALSE, warning = FALSE}
+rm(list = ls())
+setwd("C:\\Users\\nayak\\Desktop\\INSOFE\\My_Scripts\\Logistic_Regression_Prediction_Term_Deposit_Subscription")
+bank_ds = read.table("Bank_ds.txt", header = TRUE, sep = ";")
+str(bank_ds)
+head(bank_ds, 4)
+tail(bank_ds, 4)
+```
+
+# Data Preprocessing
+
+## Missing Values
+Check if the dataset given has any missing values. If yes, impute them using some imputation method eg. Target encoding or one-hot encoding.
+
+```{r message = FALSE, warning = FALSE}
+colSums(is.na(bank_ds))
+```
+Since there aren't any missing values, we'll continue with the next step, else, ome way of encoding is essential because models do not understand anything but numbers. If any NA value is encountered, the model will run but it will produce unintuitive values.
+
+## Train/Test Split
+Split the data into train and test data. The proportion of train:test should be 70:30. 
+
+### Stratified Sampling.
+When the data presented to us has a target variable which has disproportionately high number of observations for one class and consequently a small number of observations for another, it can lead to a problem called class imbalance.  
+
+**CLASS IMBALANCE:** When there are too many 1s or 0s and little 0s or 1s respectively in the target variable,a normal train test split may cause all the appearances of the minority class to get segregated into the test sample without any of them going into the train class. This will result into a problem since the model will encounter something other than what it has seen and it will collapse. To obviate this issue, we use stratified sampling.  
+
+**STRATIFIED SAMPLING:** A method of sampling in which train and test data contain roughly equal proportions of the two classes of target data. createDataPartition() function from the caret package can be used to implement this way of sampling.
+```{r message=FALSE, warning=FALSE}
+library(caret)
+RNGversion("3.6.0")
+set.seed(786)
+train_rows = createDataPartition(bank_ds$y, p = 0.7, list = F)
+# First argument - Target Variable
+# Second Argument - Proportion of data to be captured
+# Third Argument - By default, it returns a list. We cannot use a list to subset a tibble. Hence specify list = F. Then it will return a one dimensional matrix of numerics containing row numbers of the data frame.
+train_data = bank_ds[train_rows,]
+test_data = bank_ds[-train_rows,]
+```
+
+Showing the proportion of data in test and train in order to show how createDataPartition() works.
+
+The dimensions of train data and the proportion of target variables in train data is as below:
+```{r message=FALSE, warning=FALSE}
+dim(train_data)
+table(train_data$y)
+```
+
+The dimensions of test data and the proportion of target variables in test data is as below:
+```{r message=FALSE, warning=FALSE}
+dim(test_data)
+table(test_data$y)
+```
+
+# LR Model Building
+Build a basic logistic regression model. Model the target as a function of all other variables in the dataset.  
+Have a look at the summary of the model.
+```{r message = FALSE, warning=FALSE}
+LR = glm(y~., data = train_data, family = binomial)
+# Since the target variable has only two values, mention the family as binomial.
+summary(LR)
+```
+
+**Understanding the summary**
+- First, you get the spread of residuals. Minimum, maxiumum and quartiles.
+- Then, you get the coefficients for the log of odds equation which were found by maximizing the log likelihood function.
+ $$i.e. ln(S) = \beta_0x_0 + \beta_1x_1 + ....... + \beta_nx_n$$  
+ 
+* Since the cost function here isn't simple SSE, the statistical tests to check the significance of the model cannot be applied here. That's why there ain't any significane of model mentioned in the output.  
+
+* Null Deviance - If you were to draw an analogy between linear and logistic regression, null deviance would play the function of SST and accounts for the total deviation of observations around the mean.  
+
+* Residual Deviance - It is similar to SSR in linear regression.
+
+* AIC - It is a measure of the information lost in the process of building the model. Hence it must be minimal in order to capture all info about the data. It is a comparitive measure. Hence it is useful when there are several models; it makes sense to pick the one with the least AIC. 
+
+# ROC Curve
+## Prediction obj/ ROC plot
+* The predict function on the glm object of family binomial gives a value of probability for each observation and not the final outcome i.e. 0 or 1.  
+* In order to get there, we need to select a threshold or cut-off value below which the observation can be assigned class 0 and above which it can be assigned class 1.  
+* In order to select the cut-off point, we can make use of an ROC curve.  
+
+Make predictions on the train data (i.e. get their probabilities using predict function and specifying *type = response* to the same) and subsequently build a prediction object.
+
+**Note that the prediction function returns an object which has within it FP, TP, TN, FN, cutoffs, probability scores etc.**
+```{r message=FALSE, warning=FALSE}
+prob_train = predict(LR, type = 'response')
+library(ROCR)
+pred = prediction(prob_train, train_data$y)
+```
+
+After getting the prediction object, extract the performance measures from the prediction object using performance function from ROCR package. 
+```{r}
+perf = performance(pred, measure = "tpr", x.measure = "fpr")
+```
+
+Plot the ROC curve using the extracted metrics from performance function
+```{r}
+plot(perf, colorize = T, print.cutoffs.at = seq(0,1,0.05))
+```
+
+Find out the AUC score of the ROC curve plotted above and comment on the same
+```{r}
+perf_auc = performance(pred, measure = "auc")
+perf_auc
+perf_auc@y.values[[1]]
+```
+
+## Cut-off value selection
+Based on the ROC curve, a decision needs to be made regarding the threshold probability beyond which a class can be categorized as class 1 or below which it could be classified as class 0.  
+
+* Note that **FPR = 1 - Specificity** This means that in order to maximize recall and specificity keeping in mind the tradeoff, you could select the threshold at the elbow point of ROC curve (by elbow, I mean the point after which TPR almost remains constant or the curve flattens out).
+
+In this case, 0.1 looks like a good estimate to achieve a sensible trade-off between TPR and FPR.
+```{r}
+prob_test = predict(LR, test_data, type = 'response')
+pred_test = ifelse(prob_test>0.1, "yes", "no")
+```
+
+# Evaluation metrics
+
+## Confusion Matrix
+Manually compute the confusion matrix and find out all the measures
+```{r message = FALSE, warning=FALSE}
+cm = table(test_data$y, pred_test)
+print(cm)
+```
+### Sensitivity
+The proportion of correctly predicted positive classes wrt actual total positives.
+$$Sensitivity(Recall) = \frac{TP}{TP+FN}$$
+```{r}
+cm[1,1]/ sum(cm[1,])
+```
+### Specificity
+The proportion of correctly predicted negative classes wrt total negatives
+$$Specificity = \frac{TN}{FP+TN}$$
+```{r}
+cm[2,2] / sum(cm[2,])
+```
+
+### Accuracy
+The proportion of correct observations wrt total observations.  
+$$Accuracy = \frac{TP+TN}{TP+TN+FP+FN}$$
+```{r}
+(cm[1,1] + cm[2,2])/sum(cm)
+```
+
+### Precision
+The proportion of correct predictions made for positive class as compared to the total predictions made for the positive class  
+
+$$Precision = \frac{TP}{TP+FP}$$
+
+```{r}
+cm[1,1]/sum(cm[,1])
+```
+
+### F1 Score
+In order to get decide whether we've achieved a good trade-off between precision and recall, we use this metric which is the harmonic mean of those two.  
+
+$$F_1 Score = \frac{2*Precision*Recall}{Precision + Recall}$$
+
+```{r}
+recall = cm[1,1]/ sum(cm[1,])
+precision = cm[1,1]/sum(cm[,1])
+2*precision*recall/(precision+recall)
+```
+## Automated Computation
+The above metrics can be computed easily by using functions from the caret library. This is how you can achieve all the results shown above in one single step.
+```{r message = FALSE, warning = FALSE}
+library(caret)
+library(e1071)
+confusionMatrix(as.factor(pred_test), test_data$y, positive = "no")
+```
+
+# Tackling Multicollinearity
+* Overly large coefficients, huge error bars on the coefficient estimates and wrong signs on coefficients (after an intuitive judgement) can be indicators of multicollinearity.  
+* VIF can be used to check multicollinearity in these situations.
+* R gives a ***Generalized Variance Inflation Factor*** which is a generalization to account for categorical variables.
+* car package outputs $GVIF$ and $GVIF^\frac{1}{2*df}$ where df is the degrees of freedom of the categorical variable
+* For *categorical predictors*, make sure **the square of** $GVIF^\frac{1}{2*df}$ **is less than 4** and for *numeric predictors*, the $GVIF$ itself should be **less than 4.** 
+```{r message = FALSE, warning = FALSE}
+library(car)
+LR_vif = vif(LR)
+LR_vif
+```
+
+# Model Improvement - AIC  
+Use StepAIC in order to find out which variables can explain most of the given data while keeping the model simplistic.
+```{r}
+library(MASS)
+LR_Step = stepAIC(LR, direction = "both")
+LR_AIC =  glm(y ~ marital + education + housing + loan + contact + month + 
+            duration + campaign + previous + poutcome, data = train_data, family = 
+            binomial)
+```
+
+# Comparison Old vs New
+* AIC has reduced which means the information lost is less.
+* The predicted variable can be explained as a function of 9 features as against 16 features in the previous model ----> Model is simpler, hence computationally more efficient.  
+** If you observe closely, the significance of almost every variable has increased as compared to the previous model.
+
+**Summary of model built on reduced variables after AIC**
+```{r}
+summary(LR_AIC)
+```
+
+**Summary of original model before AIC**
+```{r}
+summary(LR)
+```
+
+
+

@@ -1,0 +1,274 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Logistic Regression - Term Deposit Prediction},
+            pdfauthor={Vinayak},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Logistic Regression - Term Deposit Prediction}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Vinayak}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{7/16/2019}
+
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\hypertarget{objective}{%
+\section{Objective}\label{objective}}
+
+Given the data from a bank(Bank\_ds.txt) determine whether a subject
+subscribes to a term deposit or not.
+
+The dataset has following attributes: - age (numeric)
+
+\begin{itemize}
+\item
+  job : type of job (categorical:
+  ``admin.'',``unknown'',``unemployed'',``management'',``housemaid'',``entrepreneur'',``student'',
+  ``blue-collar'',``self-employed'',``retired'',``technician'',``services'')
+\item
+  marital : marital status (categorical:
+  ``married'',``divorced'',``single''; note: ``divorced'' means divorced
+  or widowed)
+\item
+  education (categorical:
+  ``unknown'',``secondary'',``primary'',``tertiary'')
+\item
+  default: has credit in default? (binary: ``yes'',``no'')
+\item
+  balance: average yearly balance, in euros (numeric)
+\item
+  housing: has housing loan? (binary: ``yes'',``no'')
+\item
+  loan: has personal loan? (binary: ``yes'',``no'')
+\item
+  contact: contact communication type (categorical:
+  ``unknown'',``telephone'',``cellular'')
+\item
+  day: last contact day of the month (numeric)
+\item
+  month: last contact month of year (categorical: ``jan'', ``feb'',
+  ``mar'', \ldots{}, ``nov'', ``dec'')
+\item
+  duration: last contact duration, in seconds (numeric)
+\item
+  campaign: number of contacts performed during this campaign and for
+  this client (numeric, includes last contact)
+\item
+  pdays: number of days that passed by after the client was last
+  contacted from a previous campaign (numeric, -1 means client was not
+  previously contacted)
+\item
+  previous: number of contacts performed before this campaign and for
+  this client (numeric)
+\item
+  poutcome: outcome of the previous marketing campaign (categorical:
+  ``unknown'',``other'',``failure'',``success'')
+\end{itemize}
+
+Response Variable (desired target):
+
+\begin{itemize}
+\tightlist
+\item
+  y - has the client subscribed to a term deposit? (binary:
+  ``yes'',``no'')
+\end{itemize}
+
+\hypertarget{readobserve-the-data}{%
+\subsection{Read/Observe the Data}\label{readobserve-the-data}}
+
+Clear the workspace before starting a new analysis. Set the working
+directory to the folder in which your dataset resides. Read the data to
+a tibble. See the structure of the dataframe and go through a summary of
+descriptive stats pertaining to different features.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{rm}\NormalTok{(}\DataTypeTok{list =} \KeywordTok{ls}\NormalTok{())}
+\KeywordTok{setwd}\NormalTok{(}\StringTok{"C:}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{Users}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{nayak}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{Desktop}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{INSOFE}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{My_Scripts}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{Logistic_Regression_Prediction_Term_Deposit_Subscription"}\NormalTok{)}
+\NormalTok{bank_ds =}\StringTok{ }\KeywordTok{read.table}\NormalTok{(}\StringTok{"Bank_ds.txt"}\NormalTok{, }\DataTypeTok{header =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{sep =} \StringTok{";"}\NormalTok{)}
+\KeywordTok{str}\NormalTok{(bank_ds)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 'data.frame':    4521 obs. of  17 variables:
+##  $ age      : int  30 33 35 30 59 35 36 39 41 43 ...
+##  $ job      : Factor w/ 12 levels "admin.","blue-collar",..: 11 8 5 5 2 5 7 10 3 8 ...
+##  $ marital  : Factor w/ 3 levels "divorced","married",..: 2 2 3 2 2 3 2 2 2 2 ...
+##  $ education: Factor w/ 4 levels "primary","secondary",..: 1 2 3 3 2 3 3 2 3 1 ...
+##  $ default  : Factor w/ 2 levels "no","yes": 1 1 1 1 1 1 1 1 1 1 ...
+##  $ balance  : int  1787 4789 1350 1476 0 747 307 147 221 -88 ...
+##  $ housing  : Factor w/ 2 levels "no","yes": 1 2 2 2 2 1 2 2 2 2 ...
+##  $ loan     : Factor w/ 2 levels "no","yes": 1 2 1 2 1 1 1 1 1 2 ...
+##  $ contact  : Factor w/ 3 levels "cellular","telephone",..: 1 1 1 3 3 1 1 1 3 1 ...
+##  $ day      : int  19 11 16 3 5 23 14 6 14 17 ...
+##  $ month    : Factor w/ 12 levels "apr","aug","dec",..: 11 9 1 7 9 4 9 9 9 1 ...
+##  $ duration : int  79 220 185 199 226 141 341 151 57 313 ...
+##  $ campaign : int  1 1 1 4 1 2 1 2 2 1 ...
+##  $ pdays    : int  -1 339 330 -1 -1 176 330 -1 -1 147 ...
+##  $ previous : int  0 4 1 0 0 3 2 0 0 2 ...
+##  $ poutcome : Factor w/ 4 levels "failure","other",..: 4 1 1 4 4 1 2 4 4 1 ...
+##  $ y        : Factor w/ 2 levels "no","yes": 1 1 1 1 1 1 1 1 1 1 ...
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{head}\NormalTok{(bank_ds, }\DecValTok{4}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   age        job marital education default balance housing loan  contact
+## 1  30 unemployed married   primary      no    1787      no   no cellular
+## 2  33   services married secondary      no    4789     yes  yes cellular
+## 3  35 management  single  tertiary      no    1350     yes   no cellular
+## 4  30 management married  tertiary      no    1476     yes  yes  unknown
+##   day month duration campaign pdays previous poutcome  y
+## 1  19   oct       79        1    -1        0  unknown no
+## 2  11   may      220        1   339        4  failure no
+## 3  16   apr      185        1   330        1  failure no
+## 4   3   jun      199        4    -1        0  unknown no
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tail}\NormalTok{(bank_ds, }\DecValTok{4}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      age           job marital education default balance housing loan
+## 4518  57 self-employed married  tertiary     yes   -3313     yes  yes
+## 4519  57    technician married secondary      no     295      no   no
+## 4520  28   blue-collar married secondary      no    1137      no   no
+## 4521  44  entrepreneur  single  tertiary      no    1136     yes  yes
+##       contact day month duration campaign pdays previous poutcome  y
+## 4518  unknown   9   may      153        1    -1        0  unknown no
+## 4519 cellular  19   aug      151       11    -1        0  unknown no
+## 4520 cellular   6   feb      129        4   211        3    other no
+## 4521 cellular   3   apr      345        2   249        7    other no
+\end{verbatim}
+
+
+\end{document}

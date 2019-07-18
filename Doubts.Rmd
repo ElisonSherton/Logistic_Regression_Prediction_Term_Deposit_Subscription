@@ -1,0 +1,90 @@
+---
+title: "Questions"
+author: "Vinayak"
+date: "7/16/2019"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+# Preliminary Steps
+**To view the code, select Code - Show all Code on top right of the document. Or individually expand every code block as you scroll through.** 
+
+No doubt here, just reading, cleaning and doing preliminary stuff.
+
+```{r}
+rm(list = ls())
+setwd("C:\\Users\\nayak\\Desktop\\INSOFE\\My_Scripts\\Logistic_Regression_Prediction_Term_Deposit_Subscription")
+bank_ds = read.table("Bank_ds.txt", header = TRUE, sep = ";")
+str(bank_ds)
+```
+
+# Question 1
+```{r message=FALSE, warning = FALSE}
+str(bank_ds$job)
+str(bank_ds$education)
+```
+
+Look at the fields job and education. When I read these fields into R, the program automatically assumes numerical values for these factor variables. Since, education is a nominal variable, there maybe levels in these categories.   
+
+But for job, how can you say one job is better than the other, for eg. "management" is better than "admin" just for instance.
+
+# Question 2
+```{r message = FALSE, warning = FALSE}
+str(bank_ds$marital)
+```
+
+For Marital Status, the dataframe takes values 1,2,3 for single, divorced, married. It basically means that divorced is one better than single and one worse than married or that married is 2 better than single. Aren't we supposed to do one-hot encoding before building the logistic regression model?
+
+# Question 3
+```{r}
+str(bank_ds$default)
+str(bank_ds$housing)
+str(bank_ds$loan)
+```
+
+For these categories, it can be seen that we have two classes but they're encoded as 1 and 2 not as 1 and 0. Before building a model, we need to take care of it by reassigning these values, don't we?
+
+# Question 4
+```{r}
+str(bank_ds$month)
+str(bank_ds$day)
+```
+
+Month, Day as an ordinal data - It makes sense to consider these as factors having ordinality associated with them. I had a question  specifically about the month.  
+
+In my opinion, months shouldn't be indexed simply on chronological basis but on some other basis in order to capture their relation with the target variable.  
+
+Which months should be given more weight or higher index and which one a lower index? As Anand sir mentioned, mean/target encoding can capture that variation or weightage wrt target variable. Shouldn't we be doing that over here? Or if not that at least one-hot encoding?
+
+# Question 5
+```{r}
+unique(bank_ds$poutcome)
+unique(bank_ds$pdays[1])
+```
+
+Just because we have another form of NA doesn't mean we simply have no NAs in our dataset. Consider the variables poutcome and pdays respectively.  
+
+The description mentions that they encoded lack of data with some other values.  
+
+eg. poutcome says explicitly that the cases whose outcome was not known were marked "unknown". Isn't it NA simply masked as "unknown".
+
+pdays  = -1 means client wasn't previously contacted. So, is it not kind of an NA value?
+
+# Question 6
+```{r}
+class(bank_ds$campaign)
+class(bank_ds$previous)
+unique(bank_ds$campaign)
+unique(bank_ds$previous)
+```
+Although the values held by both campaign and previous are integer values, isn't it inherently a factor variable?  
+Both of them campaign and previous can only take a range of discrete values between 1-44 and 0-25 respectively?  
+Don't you need to perform a one-hot encoding on them in order to get a reasonable model?
+
+# Question 7
+This is more of a shocking observation than a question. Inspite of not doing any of this, we got a functional model with an auc of 0.91 and pretty good Recall and Accuracy. How did this happen?
